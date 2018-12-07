@@ -1,0 +1,324 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A stack for deploying containerized applications in AWS Fargate.
+  This stack runs containers in a public VPC subnet, and includes a
+  public facing load balancer to register the services in.
+Parameters:
+  EnvStackName:
+    Type: String
+    Default: env
+    Description: The name of the parent Fargate networking stack that you created. Necessary
+      to locate and reference resources created by that stack.
+  ExtraEnvStackName:
+    Type: String
+    Default: extra-env
+    Description: The name of the parent Fargate networking stack that you created. Necessary
+      to locate and reference resources created by that stack.
+  SelectedService:
+    Type: String
+    Default: Eureka
+    AllowedValues: [Eureka,Config,Auth,Tube,Bento4,Indexing,Feedback,Zuul,File,Ffmpeg]
+    Description: Select Your Service
+Mappings:
+  Services:
+    Eureka:
+      NAME: 'eureka'
+      SUBNET1:  0
+      SUBNET2:  1
+      DOCKER: 'eureka:0.0.1.RELEASE'
+      PConfig: false
+      PEureka: false
+      PATH: /actuator/health
+    Config:
+      NAME: 'config'
+      SUBNET1:  2
+      SUBNET2:  3
+      DOCKER: 'config:0.0.1.RELEASE'
+      PConfig: false
+      PEureka: true
+      PATH: /actuator/health
+    Auth:
+      NAME: 'auth'
+      SUBNET1:  4
+      SUBNET2:  5
+      DOCKER: 'auth:0.0.1.RELEASE'
+      PConfig: true
+      PEureka: false
+      PATH: /auth/actuator/health
+    Tube:
+      NAME: 'tube'
+      SUBNET1:  6
+      SUBNET2:  7
+      DOCKER: 'tube:0.0.1.RELEASE'
+      PConfig: true
+      PEureka: false
+      PATH: /actuator/health
+    Bento4:
+      NAME: 'bento4'
+      SUBNET1:  8
+      SUBNET2:  9
+      DOCKER: 'bento4:0.0.1.RELEASE'
+      PConfig: true
+      PEureka: false
+      PATH: /actuator/health
+    Indexing:
+      NAME: 'indexing'
+      SUBNET1:  10
+      SUBNET2:  11
+      DOCKER: 'indexing:0.0.1.RELEASE'
+      PConfig: true
+      PEureka: false
+      PATH: /actuator/health
+    Feedback:
+      NAME: 'feedback'
+      SUBNET1:  12
+      SUBNET2:  13
+      DOCKER: 'feedback:0.0.1.RELEASE'
+      PConfig: true
+      PEureka: false
+      PATH: /actuator/health
+    Zuul:
+      NAME: 'zuul'
+      SUBNET1:  14
+      SUBNET2:  15
+      DOCKER: 'zuul:0.0.1.RELEASE'
+      PConfig: true
+      PEureka: false
+      PATH: /actuator/health
+    File:
+      NAME: 'file'
+      SUBNET1:  16
+      SUBNET2:  17
+      DOCKER: 'file:0.0.1.RELEASE'
+      PConfig: true
+      PEureka: false
+      PATH: /actuator/health
+    Ffmpeg:
+      NAME: 'ffmpeg'
+      SUBNET1:  18
+      SUBNET2:  19
+      DOCKER: 'ffmpeg:0.0.1.RELEASE'
+      PConfig: true
+      PEureka: false
+      PATH: /actuator/health
+Conditions:
+  IncludeConfig:
+    !Equals [true, !FindInMap ['Services',{Ref: 'SelectedService'}, 'PConfig']]
+  IncludeEureka:
+    !Equals [true, !FindInMap ['Services',{Ref: 'SelectedService'}, 'PEureka']]
+
+Resources:
+  Subnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'ExtraEnvStackName', 'VPCId']]
+      AvailabilityZone: !Select
+      - 0
+      - Fn::GetAZs: ""
+      CidrBlock:
+        Fn::Select:
+          - Fn::FindInMap:
+              - 'Services'
+              - {Ref: 'SelectedService'}
+              - 'SUBNET1'
+          - Fn::Cidr:
+              - Fn::ImportValue:
+                   Fn::Join:
+                      - ':'
+                      - [!Ref 'ExtraEnvStackName', 'CidrBlock']
+              - 20
+              - 8
+      Tags:
+      - Key: "Name"
+        Value: !Join [':', [{Ref: 'SelectedService'}, '1']]
+  Subnet2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'ExtraEnvStackName', 'VPCId']]
+      AvailabilityZone: !Select
+      - 1
+      - Fn::GetAZs: ""
+      CidrBlock:
+        Fn::Select:
+        - Fn::FindInMap:
+          - 'Services'
+          - {Ref: 'SelectedService'}
+          - 'SUBNET2'
+        - Fn::Cidr:
+          - Fn::ImportValue:
+             Fn::Join:
+              - ':'
+              - [!Ref 'ExtraEnvStackName', 'CidrBlock']
+          - 20
+          - 8
+      Tags:
+      - Key: "Name"
+        Value: !Join [':', [{Ref: 'SelectedService'}, '2']]
+  Subnet1Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet1
+      RouteTableId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'ExtraEnvStackName', 'PublicRouteTable']]
+  Subnet2Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet2
+      RouteTableId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'ExtraEnvStackName', 'PublicRouteTable']]
+  CloudWatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !FindInMap ['Services',{Ref: 'SelectedService'}, 'NAME']
+      RetentionInDays: 365
+  PublicLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !FindInMap ['Services',{Ref: 'SelectedService'}, 'NAME']
+      Scheme: internet-facing
+      Subnets:
+      -  !Ref Subnet1
+      -  !Ref Subnet2
+      SecurityGroups:
+      - Fn::ImportValue:
+          !Join [':', [!Ref 'ExtraEnvStackName', 'EcsSecurityGroup']]
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetType: ip
+      Port:   '80'
+      Protocol: HTTP
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'ExtraEnvStackName', 'VPCId']]
+      HealthCheckPath: !FindInMap ['Services',{Ref: 'SelectedService'}, 'PATH']
+      HealthCheckIntervalSeconds: 70
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200,201,302,401
+
+  PublicLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+    - PublicLoadBalancer
+    Properties:
+      DefaultActions:
+      - TargetGroupArn: !Ref 'TargetGroup'
+        Type: 'forward'
+      LoadBalancerArn: !Ref 'PublicLoadBalancer'
+      Port: '80'
+      Protocol: HTTP
+
+  LoadBalancerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+      - TargetGroupArn: !Ref 'TargetGroup'
+        Type: 'forward'
+      Conditions:
+      - Field: path-pattern
+        Values: ['*']
+      ListenerArn: !Ref 'PublicLoadBalancerListener'
+      Priority: '1'
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      RequiresCompatibilities:
+      - "FARGATE"
+      Cpu: '512'
+      Memory: '1024'
+      Family: !FindInMap ['Services',{Ref: 'SelectedService'}, 'NAME']
+      NetworkMode: awsvpc
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'ExtraEnvStackName', 'ECSTaskExecutionRole']]
+      ContainerDefinitions:
+      - Name: !FindInMap ['Services',{Ref: 'SelectedService'}, 'NAME']
+        Image:
+#          !Join ['',[!Ref 'AWS::AccountId',".dkr.ecr.",!Ref 'AWS::Region',".amazonaws.com/", !FindInMap ['Services',{Ref: 'SelectedService'}, 'DOCKER']]]
+          !Join ['',["ashraf1abdelrasool/", !FindInMap ['Services',{Ref: 'SelectedService'}, 'DOCKER']]]
+        PortMappings:
+        - ContainerPort: '80'
+        Environment:
+        - Name: 'server.port'
+          Value: '80'
+        - Name: 'VCAP_APPLICATION_URIS[0]'
+          Value: !GetAtt 'PublicLoadBalancer.DNSName'
+        - Name: 'ORG_REVO_ENV_CONFIG_EXTERNALURL'
+          Value: "configasrevo.cfapps.io"
+#            Fn::If:
+#            -  IncludeConfig
+#            -  Fn::ImportValue: 'Config:ExternalUrl'
+#            -  !Ref "AWS::NoValue"
+        - Name: 'ORG_REVO_ENV_EUREKA_EXTERNALURL'
+          Value:
+            Fn::If:
+            -  IncludeEureka
+            -  Fn::ImportValue: 'Eureka:ExternalUrl'
+            -  !Ref "AWS::NoValue"
+        - Name: 'vcap.services.CONFIG_CREDENTIALS.credentials.username'
+          Value: 'revo'
+        - Name: 'vcap.services.CONFIG_CREDENTIALS.credentials.encoded_password'
+          Value: '{bcrypt}$2a$10$rPUJCZ6TmrrmDmHuIJptm.UIxsUcGm/WegmuwNfXE4eibF/kOEwWu'
+        - Name: 'vcap.services.CONFIG_CREDENTIALS.credentials.password'
+          Value: 'revo'
+        - Name: 'vcap.services.EUREKA_CREDENTIALS.credentials.username'
+          Value: 'revo'
+        - Name: 'vcap.services.EUREKA_CREDENTIALS.credentials.encoded_password'
+          Value: '{bcrypt}$2a$10$rPUJCZ6TmrrmDmHuIJptm.UIxsUcGm/WegmuwNfXE4eibF/kOEwWu'
+        - Name: 'vcap.services.EUREKA_CREDENTIALS.credentials.password'
+          Value: 'revo'
+        - Name: 'vcap.services.CLOUD_AWS.credentials.accessKey'
+          Value:
+            Fn::ImportValue:
+              !Join [':', [!Ref 'EnvStackName', 'USER:KEY:ACCESS']]
+        - Name: 'vcap.services.CLOUD_AWS.credentials.secretKey'
+          Value:
+            Fn::ImportValue:
+              !Join [':', [!Ref 'EnvStackName', 'USER:KEY:SECRET']]
+
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: !FindInMap ['Services',{Ref: 'SelectedService'}, 'NAME']
+            awslogs-region: !Ref AWS::Region
+            awslogs-stream-prefix: ecs
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn: LoadBalancerRule
+    Properties:
+      ServiceName: !FindInMap ['Services',{Ref: 'SelectedService'}, 'NAME']
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'ExtraEnvStackName', 'ECSCluster']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: '1'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::ImportValue:
+              !Join [':', [!Ref 'ExtraEnvStackName', 'EcsSecurityGroup']]
+          Subnets:
+          -  !Ref Subnet1
+          -  !Ref Subnet2
+      TaskDefinition: !Ref 'TaskDefinition'
+      LoadBalancers:
+      - ContainerName: !FindInMap ['Services',{Ref: 'SelectedService'}, 'NAME']
+        ContainerPort:  '80'
+        TargetGroupArn: !Ref 'TargetGroup'
+
+Outputs:
+  ExternalUrl:
+    Description: The url of the external load balancer
+    Value:  !GetAtt 'PublicLoadBalancer.DNSName'
+    Export:
+      Name: !Join [ ':', [ !Ref 'SelectedService', 'ExternalUrl' ] ]
