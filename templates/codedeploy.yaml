@@ -230,8 +230,8 @@ Resources:
     Properties:
       RequiresCompatibilities:
       - "FARGATE"
-      Cpu: '512'
-      Memory: '2048'
+      Cpu: '2048'
+      Memory: '4096'
       Family: !FindInMap ['Services',{Ref: 'SelectedService'}, 'NAME']
       NetworkMode: awsvpc
       ExecutionRoleArn:
