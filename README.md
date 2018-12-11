@@ -36,7 +36,7 @@
 })</pre>
 - 2 <pre>[eureka,config].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;add_route("${it}/manifest.yml")
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;add_route in "${it}/manifest.yml" 
 })</pre>
 - 3 <pre>[config].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
@@ -54,7 +54,7 @@
 - 9 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;provide this [keys](/assets/repo.key) to [Environment Variables(${it})](https://travis-ci.org/${github_username}/${it}/settings)
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;see that we need
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//see that we need
          ![](/assets/travis_settings.png)
 })</pre>
 - 10 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
