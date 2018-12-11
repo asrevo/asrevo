@@ -16,6 +16,7 @@
 *  [ffmpeg](https://github.com/asrevo/ffmpeg)> converting video to mp4 format using ffmpeg  create and upload thumb for video 
 *  [feedback](https://github.com/asrevo/feedback)> provide some feedback like followers following likes comments on video and trending feed
 *  [indexing](https://github.com/asrevo/indexing)> provide the ability to index the data and provide search endpoint for them  
+*  [torrent](https://github.com/asrevo/torrent)> provide the ability to download form torrnet
 
 
 ## Pre install
@@ -26,7 +27,7 @@
 - 5 create [aws](https://aws.amazon.com/) account
 
 ## Deploy Steps
-- 1 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul].
+- 1 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;star(${it});
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fork(${it});
@@ -42,7 +43,7 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;update ORG_REVO_ENV_EUREKA_EXTERNALURL in "${it}/manifest.yml"
 })</pre>
 
-- 4 <pre>[bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul].
+- 4 <pre>[bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;update ORG_REVO_ENV_CONFIG_EXTERNALURL in "${it}/manifest.yml"
 })</pre>
@@ -50,13 +51,13 @@
 - 6 create aws CloudFront key pairs and store them in [pk-revo.pm](https://github.com/asrevo/config/blob/master/src/main/resources/static/revo-pk.pem) and [tube.yml](https://github.com/asrevo/config/blob/master/src/main/resources/config/tube.yml#L23)
 - 7 add accessKey,secretKey,username,password,encoded_password for config and eureka in [services.sh](assets/services.sh) note encoded_password=encrypt(password) [see](https://github.com/asrevo/config/blob/master/src/main/java/org/revo/Config/Util.java#L138)
 - 8 run [./services.sh](assets/services.sh)
-- 9 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul].
+- 9 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;provide this [keys](/assets/repo.key) to [Environment Variables(${it})](https://travis-ci.org/${github_username}/${it}/settings)
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;see that we need
          ![](/assets/travis_settings.png)
 })</pre>
-- 10 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul].
+- 10 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;change ${it}/README.md with your ${github_username} in "Build Status url"
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;commit(${it});
@@ -66,7 +67,7 @@
 
 
 ## Features will supported
-<pre>[paypal,torrent,notifier].
+<pre>[paypal,notifier].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEach({
         implement(${it})
 })</pre>
