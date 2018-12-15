@@ -5,7 +5,6 @@ zuul/
 eureka/
 config/
 auth/
-bento4/
 ffmpeg/
 feedback/
 target/

@@ -16,7 +16,7 @@ Parameters:
   SelectedService:
     Type: String
     Default: Eureka
-    AllowedValues: [Eureka,Config,Auth,Tube,Bento4,Indexing,Feedback,Zuul,File,Ffmpeg]
+    AllowedValues: [Eureka,Config,Auth,Tube,Indexing,Feedback,Zuul,File,Ffmpeg]
     Description: Select Your Service
 Mappings:
   Services:
@@ -52,11 +52,11 @@ Mappings:
       PConfig: true
       PEureka: false
       PATH: /actuator/health
-    Bento4:
-      NAME: 'bento4'
+    Ffmpeg:
+      NAME: 'ffmpeg'
       SUBNET1:  8
       SUBNET2:  9
-      DOCKER: 'bento4:0.0.1.RELEASE'
+      DOCKER: 'ffmpeg:0.0.1.RELEASE'
       PConfig: true
       PEureka: false
       PATH: /actuator/health
@@ -89,14 +89,6 @@ Mappings:
       SUBNET1:  16
       SUBNET2:  17
       DOCKER: 'file:0.0.1.RELEASE'
-      PConfig: true
-      PEureka: false
-      PATH: /actuator/health
-    Ffmpeg:
-      NAME: 'ffmpeg'
-      SUBNET1:  18
-      SUBNET2:  19
-      DOCKER: 'ffmpeg:0.0.1.RELEASE'
       PConfig: true
       PEureka: false
       PATH: /actuator/health

@@ -11,7 +11,6 @@
 *  [auth](https://github.com/asrevo/auth)> provide central authentication for any service 
 *  [zuul](https://github.com/asrevo/zuul)> provide gateway for the services
 *  [tube](https://github.com/asrevo/tube)> provide the main endpoints for the app display media
-*  [bento4](https://github.com/asrevo/bento4)> converting video to hls format push them to s3
 *  [file](https://github.com/asrevo/file)> upload and unzip files and push them to s3
 *  [ffmpeg](https://github.com/asrevo/ffmpeg)> converting video to mp4 format using ffmpeg  create and upload thumb for video 
 *  [feedback](https://github.com/asrevo/feedback)> provide some feedback like followers following likes comments on video and trending feed
@@ -27,7 +26,7 @@
 - 5 create [aws](https://aws.amazon.com/) account
 
 ## Deploy Steps
-- 1 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
+- 1 <pre>[eureka,config,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;star(${it});
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fork(${it});
@@ -43,7 +42,7 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;update ORG_REVO_ENV_EUREKA_EXTERNALURL in "${it}/manifest.yml"
 })</pre>
 
-- 4 <pre>[bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
+- 4 <pre>[tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;update ORG_REVO_ENV_CONFIG_EXTERNALURL in "${it}/manifest.yml"
 })</pre>
@@ -51,13 +50,13 @@
 - 6 create aws CloudFront key pairs and store them in [pk-revo.pm](https://github.com/asrevo/config/blob/master/src/main/resources/static/revo-pk.pem) and [tube.yml](https://github.com/asrevo/config/blob/master/src/main/resources/config/tube.yml#L23)
 - 7 add accessKey,secretKey,username,password,encoded_password for config and eureka in [services.sh](assets/services.sh) note encoded_password=encrypt(password) [see](https://github.com/asrevo/config/blob/master/src/main/java/org/revo/Config/Util.java#L138)
 - 8 run [./services.sh](assets/services.sh)
-- 9 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
+- 9 <pre>[eureka,config,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;provide this [keys](/assets/repo.key) to [Environment Variables(${it})](https://travis-ci.org/${github_username}/${it}/settings)
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//see that we need
          ![](/assets/travis_settings.png)
 })</pre>
-- 10 <pre>[eureka,config,bento4,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
+- 10 <pre>[eureka,config,tube,file,ffmpeg,feedback,indexing,auth,zuul,torrent].
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forEachOrdered({
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;change ${it}/README.md with your ${github_username} in "Build Status url"
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;commit(${it});
