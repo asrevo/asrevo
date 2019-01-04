@@ -7,6 +7,7 @@ config/
 auth/
 ffmpeg/
 feedback/
+gateway/
 target/
 as-revo.sh
 src/
